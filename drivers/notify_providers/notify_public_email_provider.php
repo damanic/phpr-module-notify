@@ -1,6 +1,6 @@
 <?php
 
-class Notify_User_Email_Provider extends Notify_Provider_Base
+class Notify_Public_Email_Provider extends Notify_Provider_Base
 {
 	const mode_smtp = 'smtp';
 	const mode_sendmail = 'sendmail';
@@ -9,14 +9,14 @@ class Notify_User_Email_Provider extends Notify_Provider_Base
 	/**
 	 * Returns information about the provider.
 	 * @return array Returns array with two keys: name and description
-	 * array('name' => 'User Emailer', 'code' => 'user_emailer', 'description' => 'Sends an email to the user visiting the site')
+	 * array('name' => 'User Emailer', 'code' => 'public_emailer', 'description' => 'Sends an email to the user visiting the site')
 	 */
 	public function get_info()
 	{
 		return array(
-			'name' => 'User Emailer',
-			'code' => 'user_emailer',
-			'description' => 'Sends an email to the user visiting the site'
+			'name' => 'Public Emailer',
+			'code' => 'public_emailer',
+			'description' => 'Sends public content to any given email address'
 		);
 	}
 		
@@ -47,11 +47,11 @@ class Notify_User_Email_Provider extends Notify_Provider_Base
 		$host->form_tab_visibility('Sendmail', $host->send_mode == self::mode_sendmail);
 
 		// Public Templates
-		$host->add_field('user_template_css', 'CSS', 'full', db_varchar)->tab('Email Template')
+		$host->add_field('public_template_css', 'CSS', 'full', db_varchar)->tab('Email Template')
 			->css_classes('code')->display_as(frm_code_editor)->size('large')
 			->comment('This CSS document will be included to the layout', 'above')->language('css');
 
-		$host->add_field('user_template_content', 'Content', 'full', db_varchar)->tab('Email Template')
+		$host->add_field('public_template_content', 'Content', 'full', db_varchar)->tab('Email Template')
 			->css_classes('code')->display_as(frm_code_editor)->size('huge')
 			->comment('Please provide the HTML/PHP code for public emails', 'above');
 	}
@@ -97,20 +97,33 @@ class Notify_User_Email_Provider extends Notify_Provider_Base
 	// Template UI
 	// 
 
-	public function build_template_ui($host, $context = null)
-	{
-		$host->add_field('user_template_disabled', 'Disable User Email', 'full', db_bool)->comment('Check this box if you do not want this template to be sent')->tab('User Email');
-		$host->add_field('user_email_subject', 'Email Subject', 'full', db_varchar)->tab('User Email');
-		$host->add_field('user_email_content', 'Email Content', 'full', db_varchar)->display_as(frm_html)->size('huge')->tab('User Email');
-	}
+	public function build_template_ui($host, $context = null){
+
+        $host->add_field('public_template_disabled', 'Disable Public Email', 'full', db_bool)->comment('Check this box if you do not want this template to be sent')->tab('Public Email');
+
+        //sender name can be set in template admin if set as public var in the notify template
+        if($host->sender_name){
+            $host->add_field('public_email_sender_name', 'Sender Name', 'right', db_varchar)->tab('Public Email');
+        }
+
+        //sender email can be set in template admin if set as public var in the notify template
+        if($host->sender_email){
+            $host->add_field('public_email_sender_email', 'Sender Email', 'left', db_varchar)->tab('Public Email');
+        }
+
+		$host->add_field('public_email_subject', 'Email Subject', 'full', db_varchar)->tab('Public Email');
+		$host->add_field('public_email_content', 'Email Content', 'full', db_varchar)->display_as(frm_html)->size('huge')->tab('Public Email');
+    }
 
 	public function init_template_data($host)
 	{
 		if (!$host->init_template_extension())
 			return;
 
-		if (!strlen($host->user_email_subject)) $host->user_email_subject = $host->get_subject();
-		if (!strlen($host->user_email_content)) $host->user_email_content = $host->get_content();
+		if (!strlen($host->public_email_subject)) $host->public_email_subject = $host->get_subject();
+		if (!strlen($host->public_email_content)) $host->public_email_content = $host->get_content();
+        if (!strlen($host->public_email_sender_name)) $host->public_email_sender_name = $host->sender_name;
+        if (!strlen($host->public_email_sender_email)) $host->public_email_sender_email = $host->sender_email;
 	}
 
 	// Sending
@@ -118,14 +131,17 @@ class Notify_User_Email_Provider extends Notify_Provider_Base
 
 	public function send_notification($template) 
 	{
-		if ($template->user_template_disabled)
+
+		if ($template->public_template_disabled)
 			return false;
 		
-		if ($template->user_email_subject && $template->user_email_content) {
+		if ($template->public_email_subject && $template->public_email_content) {
 			$this->send_email(
 				$template->get_recipients(), 
-				$template->user_email_subject, 
-				$template->user_email_content
+				$template->public_email_subject, 
+				$template->public_email_content,
+                $template->public_email_sender_name,
+                $template->public_email_sender_email
 			);
 			return true;
 		}
@@ -147,10 +163,18 @@ class Notify_User_Email_Provider extends Notify_Provider_Base
 	 * @param string $content 
 	 * @param string $subject Specifies a message subject
 	 */
-	public function send_email($recipients = array(), $subject, $content)
+	public function send_email($recipients = array(), $subject, $content, $sender_name = NULL, $sender_email=NULL)
 	{
+
 		if (!is_array($recipients))
 			$recipients = array($recipients);
+
+        //admin users do not get public mail
+        foreach($recipients as $key => $recipient){
+            if(is_a($recipient, 'Admin_User')){
+                unset($recipients[$key]);
+            }
+        }
 
 		if (!count($recipients))
 			return;
@@ -179,10 +203,13 @@ class Notify_User_Email_Provider extends Notify_Provider_Base
 
 		$mailer->set_subject($subject);
 		$mailer->set_content($content);
-		$mailer->set_sender($host->sender_email, $host->sender_name);
+
+
+		$mailer->set_sender($sender_email ? $sender_email : $host->sender_email,
+                            $sender_name ? $sender_name : $host->sender_name);
+
 		$mailer->add_recipients($recipients);
 		$mailer->send();
-
 	}	
 
 }

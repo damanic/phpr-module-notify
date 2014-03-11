@@ -3,17 +3,17 @@
 // Create user email provider
 // 
 
-$exisiting_provider = Notify_Provider::create()->find_by_code('user_emailer');
+$exisiting_provider = Notify_Provider::create()->find_by_code('public_emailer');
 
 if (!$exisiting_provider) {
 
 	$provider = Notify_Provider::create();
-	$provider->code = 'user_emailer';
-	$provider->class_name = 'Notify_User_Email_Provider';
-	$provider->send_mode = Notify_User_Email_Provider::mode_mail;
+	$provider->code = 'public_emailer';
+	$provider->class_name = 'Notify_Public_Email_Provider';
+	$provider->send_mode = Notify_Public_Email_Provider::mode_mail;
 	$provider->init_form_fields();
 
-	$provider->public_template_css = 'a, a:hover { 
+	$provider->public_template_css = 'a, a:hover {
 	text-decoration: none;
 	color: #0862A2;
 	font-weight: bold;
@@ -49,17 +49,17 @@ p {
 // Create admin email provider
 // 
 
-$exisiting_provider = Notify_Provider::create()->find_by_code('admin_emailer');
+$exisiting_provider = Notify_Provider::create()->find_by_code('private_emailer');
 
 if (!$exisiting_provider) {
 
 	$provider = Notify_Provider::create();
-	$provider->code = 'admin_emailer';
-	$provider->class_name = 'Notify_Admin_Email_Provider';
-	$provider->send_mode = Notify_Admin_Email_Provider::mode_mail;
+	$provider->code = 'private_emailer';
+	$provider->class_name = 'Notify_Private_Email_Provider';
+	$provider->send_mode = Notify_Private_Email_Provider::mode_mail;
 	$provider->init_form_fields();
 
-	$provider->admin_template_css = 'a, a:hover { 
+	$provider->private_template_css = 'a, a:hover { 
 	text-decoration: none;
 	color: #0862A2;
 	font-weight: bold;
@@ -74,7 +74,7 @@ p {
 	margin: 10px 0;
 }';
 
-	$provider->admin_template_content = '<html xmlns="http://www.w3.org/1999/xhtml">
+	$provider->private_template_content = '<html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<title></title>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>

@@ -4,6 +4,8 @@ class Notify_Template_Base extends Phpr_Driver_Base
 {
 	public static $driver_folder = 'notify_templates';
 	public static $driver_suffix = '_template';
+    public $sender_name;
+    public $sender_email;
 
 	public $required_params = array();
 

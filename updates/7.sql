@@ -1,0 +1,1 @@
+DELETE FROM notify_providers WHERE code='admin_emailer' OR code='user_emailer';

@@ -1,6 +1,6 @@
 <?php
 
-class Notify_Admin_Email_Provider extends Notify_Provider_Base
+class Notify_Private_Email_Provider extends Notify_Provider_Base
 {
 	const mode_smtp = 'smtp';
 	const mode_sendmail = 'sendmail';
@@ -14,9 +14,9 @@ class Notify_Admin_Email_Provider extends Notify_Provider_Base
 	public function get_info()
 	{
 		return array(
-			'name' => 'Staff Emailer',
-			'code' => 'admin_emailer',
-			'description' => 'Sends an email to internal staff'
+			'name' => 'Internal Emailer',
+			'code' => 'private_emailer',
+			'description' => 'Sends an email to valid administration accounts only'
 		);
 	}
 		
@@ -99,18 +99,19 @@ class Notify_Admin_Email_Provider extends Notify_Provider_Base
 
 	public function build_template_ui($host, $context = null)
 	{
-		$host->add_field('admin_template_disabled', 'Disable Staff Email', 'full', db_bool)->comment('Check this box if you do not want this template to be sent')->tab('Staff Email');
-		$host->add_field('admin_email_subject', 'Email Subject', 'full', db_varchar)->tab('Staff Email');
-		$host->add_field('admin_email_content', 'Email Content', 'full', db_varchar)->display_as(frm_html)->size('huge')->tab('Staff Email');
-	}
+		$host->add_field('private_template_disabled', 'Disable Internal Email', 'full', db_bool)->comment('Check this box if you do not want this template to be sent')->tab('Internal Email');
+		$host->add_field('private_email_subject', 'Email Subject', 'full', db_varchar)->tab('Internal Email');
+		$host->add_field('private_email_content', 'Email Content', 'full', db_varchar)->display_as(frm_html)->size('huge')->tab('Internal Email');
+
+    }
 
 	public function init_template_data($host)
 	{
 		if (!$host->init_template_extension())
 			return;
 
-		if (!strlen($host->admin_email_subject)) $host->admin_email_subject = $host->get_internal_subject();
-		if (!strlen($host->admin_email_content)) $host->admin_email_content = $host->get_internal_content();
+		if (!strlen($host->private_email_subject)) $host->private_email_subject = $host->get_internal_subject();
+		if (!strlen($host->private_email_content)) $host->private_email_content = $host->get_internal_content();
 	}
 
 	// Sending
@@ -118,14 +119,14 @@ class Notify_Admin_Email_Provider extends Notify_Provider_Base
 
 	public function send_notification($template) 
 	{
-		if ($template->admin_template_disabled)
+		if ($template->private_template_disabled)
 			return false;
 		
-		if ($template->admin_email_subject && $template->admin_email_content) {
+		if ($template->private_email_subject && $template->private_email_content) {
 			$this->send_email(
-				$template->get_recipients(true), 
-				$template->admin_email_subject, 
-				$template->admin_email_content
+				$template->get_recipients(),
+				$template->private_email_subject,
+				$template->private_email_content
 			);
 			return true;
 		}
@@ -149,11 +150,21 @@ class Notify_Admin_Email_Provider extends Notify_Provider_Base
 	 */
 	public function send_email($recipients = array(), $subject, $content)
 	{
+
 		if (!is_array($recipients))
 			$recipients = array($recipients);
 
-		if (!count($recipients))
-			return;
+        //only admin users get private mail
+        foreach($recipients as $key => $recipient){
+            if(!is_a($recipient, 'Admin_User')){
+                trace_log('no no no'.$recipient->email);
+              unset($recipients[$key]);
+            }
+        }
+
+        if (!count($recipients))
+            return;
+
 
 		$host = $this->get_host_object();
 		if (!$host)
