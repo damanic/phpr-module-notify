@@ -129,7 +129,7 @@ class Notify_Public_Email_Provider extends Notify_Provider_Base
 	// Sending
 	// 
 
-	public function send_notification($template) 
+	public function send_notification($template, $test=FALSE)
 	{
 
 		if ($template->public_template_disabled)
@@ -141,7 +141,8 @@ class Notify_Public_Email_Provider extends Notify_Provider_Base
 				$template->public_email_subject, 
 				$template->public_email_content,
                 $template->public_email_sender_name,
-                $template->public_email_sender_email
+                $template->public_email_sender_email,
+                $test
 			);
 			return true;
 		}
@@ -163,16 +164,18 @@ class Notify_Public_Email_Provider extends Notify_Provider_Base
 	 * @param string $content 
 	 * @param string $subject Specifies a message subject
 	 */
-	public function send_email($recipients = array(), $subject, $content, $sender_name = NULL, $sender_email=NULL)
+	public function send_email($recipients = array(), $subject, $content, $sender_name = NULL, $sender_email=NULL, $test=FALSE)
 	{
 
 		if (!is_array($recipients))
 			$recipients = array($recipients);
 
         //admin users do not get public mail
-        foreach($recipients as $key => $recipient){
-            if(is_a($recipient, 'Admin_User')){
-                unset($recipients[$key]);
+        if(!$test){
+            foreach($recipients as $key => $recipient){
+                if(is_a($recipient, 'Admin_User')){
+                    unset($recipients[$key]);
+                }
             }
         }
 

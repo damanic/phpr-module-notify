@@ -89,7 +89,7 @@ class Notify_Template extends Db_ActiveRecord
 		return true;
 	}
 
-	public function send($providers = null)
+	public function send($providers = null, $test=FALSE)
 	{
 		if ($providers === null || !is_array($providers))
 			$providers = Notify_Provider::find_all_active_providers();
@@ -98,7 +98,7 @@ class Notify_Template extends Db_ActiveRecord
 		
 		foreach ($providers as $provider)
 		{
-			if ($provider->send_notification($this))
+			if ($provider->send_notification($this, $test))
 				$sent_any = true;
 		}
 

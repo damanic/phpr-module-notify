@@ -55,7 +55,8 @@ class Notify_Templates extends Admin_Settings_Controller
 			$obj->validate_data(post($this->form_model_class, array()));
 			$obj->add_recipient($this->active_user);
 			$obj->add_recipient($this->active_user, true);
-			$obj->send();
+            $test = true;
+            $obj->send(null,$test);
 			
 			echo Admin_Html::flash_message('The test message has been successfully sent.');
 		}
