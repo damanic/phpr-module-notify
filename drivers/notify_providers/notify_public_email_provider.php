@@ -136,6 +136,8 @@ class Notify_Public_Email_Provider extends Notify_Provider_Base
 			return false;
 		
 		if ($template->public_email_subject && $template->public_email_content) {
+
+            try {
 			$this->send_email(
 				$template->get_recipients(), 
 				$template->public_email_subject, 
@@ -145,8 +147,11 @@ class Notify_Public_Email_Provider extends Notify_Provider_Base
                 $test
 			);
 			return true;
+            } catch (Exception $e){
+                Phpr::$error_log->log_exception($e);
+                return true;
+            }
 		}
-		else 
 			return false;
 	}
 
@@ -154,7 +159,7 @@ class Notify_Public_Email_Provider extends Notify_Provider_Base
 	{
 		$subject = 'This is a test notification from '.c('site_name').'.';
 		$content = '<p>Hi there!</p><p>This is a test message from '.c('site_name').'.</p><p>If you received this message by mistake it is safe to ignore.</p>';
-		$this->send_email(array($recipient), $subject, $content);
+		$this->send_email(array($recipient), $subject, $content, NULL, NULL, TRUE);
 		return true;
 	}
 

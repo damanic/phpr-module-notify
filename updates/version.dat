@@ -5,4 +5,5 @@
 #5|1.0.5 Minor bug fixes.
 #6|1.0.6 Add ability to disable notification templates individually.
 #7|1.0.7 Public and Private Email providers replace user and admin providers.
-#7|1.0.8 Added a test flag for 'on_test' email template calls. Providers are now aware if sending a template for test purposes. This fixes an issue where the public email provider was filtering out the admin user, effectively blocking the public template test emails from being delivered to admin users.
+#8|1.0.8 Added a test flag for 'on_test' email template calls. Providers are now aware if sending a template for test purposes. This fixes an issue where the public email provider was filtering out the admin user, effectively blocking the public template test emails from being delivered to admin users.
+#9|1.0.9 Added exception log to mail fails on PUBLIC provider. Minor bug fix.
