@@ -157,7 +157,6 @@ class Notify_Private_Email_Provider extends Notify_Provider_Base
         //only admin users get private mail
         foreach($recipients as $key => $recipient){
             if(!is_a($recipient, 'Admin_User')){
-                trace_log('no no no'.$recipient->email);
               unset($recipients[$key]);
             }
         }
