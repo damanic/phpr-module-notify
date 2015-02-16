@@ -176,7 +176,7 @@ class Notify_Private_Email_Provider extends Notify_Provider_Base
 		{
 			case self::mode_smtp:
 				if ($host->smtp_authorization)
-					$mailer->set_mode_smtp($host->smtp_address, $host->smtp_port, $host->smtp_ssl, $host->smtp_user, base64_decode($host->smtp_password));
+					$mailer->set_mode_smtp($host->smtp_address, $host->smtp_port, $host->smtp_ssl, $host->smtp_user, $host->smtp_password);
 				else
 					$mailer->set_mode_smtp($host->smtp_address, $host->smtp_port, $host->smtp_ssl);
 			break;
